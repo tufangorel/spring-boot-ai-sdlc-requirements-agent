@@ -15,7 +15,9 @@ Models tend to invent plausible requirements that nobody asked for. The service 
 - A story with the same role and goal as an earlier one is dropped as a duplicate.
 - At most `requirements.max-stories` stories are returned.
 
-Every dropped story is listed in `warnings`, so nothing disappears without a trace. The service, not the model, assigns the ids (`US-1`, `AC-1.1`) and builds the story sentence ("As a …, I want …, so that …").
+Every dropped story is listed in `warnings`, so nothing disappears without a trace.
+
+The opposite gap is reported too. `uncoveredRequirementText` lists each sentence of the requirement that no story's `sourceQuote` covers, so you can see what the model skipped. The check compares quotes, so a sentence that is handled only inside an acceptance criterion also appears here; treat the list as text to review, not as an error. The service, not the model, assigns the ids (`US-1`, `AC-1.1`) and builds the story sentence ("As a …, I want …, so that …").
 
 The **definition of done** combines two parts. The first is your team's general checklist, configured in `requirements.definition-of-done`. The second is the checks the model found specific to this requirement, such as audit logging or a data migration. Duplicates are removed.
 
@@ -143,6 +145,7 @@ If the model call fails, the error goes back to the caller and no partial result
       ]
     }
   ],
+  "uncoveredRequirementText": ["Shipped orders cannot be cancelled."],
   "definitionOfDone": [
     "Code is peer reviewed and merged to the main branch",
     "Every acceptance criterion is covered by an automated test that passes in CI",
@@ -158,6 +161,8 @@ If the model call fails, the error goes back to the caller and no partial result
 ```
 
 `priority` uses MoSCoW: `MUST`, `SHOULD`, `COULD`, or `WONT`. It is `null` when the model gives no usable priority.
+
+In this example, the third sentence of the requirement appears in `uncoveredRequirementText` because no story quotes it, even though `AC-1.2` handles it.
 
 ### Configuration
 

@@ -24,6 +24,7 @@ final class UserStoryMarkdown {
 						.append(", then ").append(criterion.then()).append(".\n");
 			}
 		}
+		section(md, "Requirement text not covered by a story", result.uncoveredRequirementText(), "- ");
 		section(md, "Definition of done", result.definitionOfDone(), "- [ ] ");
 		section(md, "Assumptions", result.assumptions(), "- ");
 		section(md, "Open questions", result.openQuestions(), "- ");

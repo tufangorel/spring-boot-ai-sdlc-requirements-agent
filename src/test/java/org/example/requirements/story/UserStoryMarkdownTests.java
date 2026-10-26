@@ -17,7 +17,7 @@ class UserStoryMarkdownTests {
 						"admin", "to lock an account", "misuse stops", Priority.MUST, "Admins can lock a user account.",
 						List.of(new AcceptanceCriterion("AC-1.1", "an active user", "the admin locks the account",
 								"the user is signed out")))),
-				List.of("Code is peer reviewed"), List.of("Only admins lock accounts"),
+				List.of("Locks expire after 24 hours."), List.of("Code is peer reviewed"), List.of("Only admins lock accounts"),
 				List.of("How long does a lock last?"), List.of("Dropped story \"Delete\": its source quote does not appear in the requirement."));
 
 		assertThat(UserStoryMarkdown.render(result)).isEqualTo("""
@@ -35,6 +35,10 @@ class UserStoryMarkdownTests {
 				### Acceptance criteria
 
 				- **AC-1.1** Given an active user, when the admin locks the account, then the user is signed out.
+
+				## Requirement text not covered by a story
+
+				- Locks expire after 24 hours.
 
 				## Definition of done
 
@@ -60,10 +64,11 @@ class UserStoryMarkdownTests {
 				List.of(new UserStory("US-1", "Reset", "As a user, I want to reset my password, so that I can sign in.",
 						"user", "to reset my password", "I can sign in", null, "Users can reset a password.",
 						List.of(new AcceptanceCriterion("AC-1.1", "a user", "they reset", "a link is sent")))),
-				List.of(), List.of(), List.of(), List.of());
+				List.of(), List.of(), List.of(), List.of(), List.of());
 
 		assertThat(UserStoryMarkdown.render(result))
 				.contains("- **Priority:** Not set")
+				.doesNotContain("## Requirement text not covered by a story")
 				.doesNotContain("## Definition of done")
 				.doesNotContain("## Assumptions")
 				.doesNotContain("## Open questions")

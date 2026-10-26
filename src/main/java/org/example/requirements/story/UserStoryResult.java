@@ -5,6 +5,7 @@ import java.util.List;
 public record UserStoryResult(
 		String summary,
 		List<UserStory> stories,
+		List<String> uncoveredRequirementText,
 		List<String> definitionOfDone,
 		List<String> assumptions,
 		List<String> openQuestions,

@@ -134,9 +134,35 @@ class StoryGroundingTests {
 	}
 
 	@Test
+	void listsRequirementSentencesThatNoStoryQuotes() {
+		assertThat(ground(draft(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can")))
+				.uncoveredRequirementText()).containsExactly("Locked users cannot sign in.");
+
+		String requirement = """
+				Admins can lock accounts. Locks last one day!
+
+				---
+				Locked users see a notice? Locked users see a notice?
+				Admins get an email""";
+		UserStoryResult result = StoryGrounding.ground(requirement,
+				draft(story("Lock", "admin", "to lock accounts", "misuse stops", "accounts.  Locks last")), BASELINE, 10);
+
+		assertThat(result.uncoveredRequirementText()).containsExactly("Admins can lock accounts.", "Locks last one day!",
+				"Locked users see a notice?", "Admins get an email");
+
+		UserStoryResult spanning = StoryGrounding.ground(requirement,
+				draft(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can lock accounts. Locks last one day!")),
+				BASELINE, 10);
+
+		assertThat(spanning.uncoveredRequirementText()).containsExactly("Locked users see a notice?", "Admins get an email");
+	}
+
+	@Test
 	void handlesANullReply() {
 		UserStoryResult result = ground(null);
 
+		assertThat(result.uncoveredRequirementText())
+				.containsExactly("Admins can “lock” a user account.", "Locked users cannot sign in.");
 		assertThat(result.stories()).isEmpty();
 		assertThat(result.definitionOfDone()).isEqualTo(BASELINE);
 		assertThat(result.assumptions()).isEmpty();

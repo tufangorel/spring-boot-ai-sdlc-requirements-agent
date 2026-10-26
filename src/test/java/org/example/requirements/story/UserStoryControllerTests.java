@@ -29,7 +29,8 @@ class UserStoryControllerTests {
 					"user", "to reset my password", "I can sign in", Priority.MUST, "Users can reset a password.",
 					List.of(new AcceptanceCriterion("AC-1.1", "a registered user", "they ask for a reset",
 							"a reset link is emailed")))),
-			List.of("Code is peer reviewed"), List.of(), List.of("How long is the link valid?"), List.of());
+			List.of("Links expire after one hour."), List.of("Code is peer reviewed"), List.of(),
+			List.of("How long is the link valid?"), List.of());
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -55,6 +56,7 @@ class UserStoryControllerTests {
 				.andExpect(jsonPath("$.stories[0].story").value("As a user, I want to reset my password, so that I can sign in."))
 				.andExpect(jsonPath("$.stories[0].priority").value("MUST"))
 				.andExpect(jsonPath("$.stories[0].acceptanceCriteria[0].then").value("a reset link is emailed"))
+				.andExpect(jsonPath("$.uncoveredRequirementText[0]").value("Links expire after one hour."))
 				.andExpect(jsonPath("$.definitionOfDone[0]").value("Code is peer reviewed"))
 				.andExpect(jsonPath("$.openQuestions[0]").value("How long is the link valid?"));
 	}
