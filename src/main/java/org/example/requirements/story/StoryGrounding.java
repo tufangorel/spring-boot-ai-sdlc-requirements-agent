@@ -24,6 +24,10 @@ final class StoryGrounding {
 
 	private static final Pattern CLAUSE_PREFIX = Pattern.compile("(?i)^(given|when|then)\\s+");
 
+	private static final Pattern SENTENCE_BREAK = Pattern.compile("(?<=[.!?])\\s+|\\s*\\R\\s*");
+
+	private static final Pattern WORD_CHARACTER = Pattern.compile("[\\p{L}\\p{N}]");
+
 	private StoryGrounding() {
 	}
 
@@ -97,8 +101,21 @@ final class StoryGrounding {
 		}
 		List<String> definitionOfDone = new ArrayList<>(baselineDefinitionOfDone);
 		definitionOfDone.addAll(nullSafe(reply.definitionOfDone()));
-		return new UserStoryResult(summary, stories, distinct(definitionOfDone), distinct(reply.assumptions()),
-				distinct(reply.openQuestions()), List.copyOf(warnings));
+		return new UserStoryResult(summary, stories, uncovered(requirement, stories), distinct(definitionOfDone),
+				distinct(reply.assumptions()), distinct(reply.openQuestions()), List.copyOf(warnings));
+	}
+
+	private static List<String> uncovered(String requirement, List<UserStory> stories) {
+		List<String> quotes = stories.stream().map(story -> normalize(story.sourceQuote())).toList();
+		List<String> sentences = new ArrayList<>();
+		for (String sentence : SENTENCE_BREAK.split(requirement.trim())) {
+			String key = normalize(sentence);
+			if (WORD_CHARACTER.matcher(sentence).find()
+					&& quotes.stream().noneMatch(quote -> key.contains(quote) || quote.contains(key))) {
+				sentences.add(sentence.trim());
+			}
+		}
+		return distinct(sentences);
 	}
 
 	private static String sentence(String role, String goal, String benefit) {

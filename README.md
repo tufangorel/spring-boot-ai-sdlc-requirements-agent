@@ -19,6 +19,12 @@ Every dropped story is listed in `warnings`, so nothing disappears without a tra
 
 The **definition of done** combines two parts. The first is your team's general checklist, configured in `requirements.definition-of-done`. The second is the checks the model found specific to this requirement, such as audit logging or a data migration. Duplicates are removed.
 
+### Requirement coverage
+
+The opposite gap is reported too: requirement text that no story came from. The service splits the requirement into sentences at `.`, `!`, `?`, and line breaks, skips lines with no letters or digits (such as `---`), and lists every sentence that no kept story's `sourceQuote` covers in `uncoveredRequirementText`. A sentence counts as covered when it contains a story's quote or lies inside one, using the same comparison as above. The Markdown output shows the list under "Requirement text not covered by a story".
+
+The check compares quotes, not meaning. A sentence that a story handles only in its acceptance criteria still appears in the list, and an abbreviation such as "e.g." can split a sentence in two. Treat the list as text to review with the product owner, not as an error.
+
 ## Tech stack
 
 - Java 25
@@ -99,7 +105,7 @@ sequenceDiagram
     Model-->>ChatClient: ChatResponse
     ChatClient-->>Agent: StoryDraft (entity)
     Agent->>Grounding: ground(requirement, draft, team definition of done, max stories)
-    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories, then record warnings
+    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories, record warnings,<br/>and list uncovered requirement sentences
     Grounding-->>Agent: UserStoryResult with ids and story sentences
     Agent-->>Controller: UserStoryResult
     Controller-->>Client: 200 OK (JSON, or Markdown for /markdown)
@@ -143,6 +149,7 @@ If the model call fails, the error goes back to the caller and no partial result
       ]
     }
   ],
+  "uncoveredRequirementText": ["Shipped orders cannot be cancelled."],
   "definitionOfDone": [
     "Code is peer reviewed and merged to the main branch",
     "Every acceptance criterion is covered by an automated test that passes in CI",
@@ -158,6 +165,8 @@ If the model call fails, the error goes back to the caller and no partial result
 ```
 
 `priority` uses MoSCoW: `MUST`, `SHOULD`, `COULD`, or `WONT`. It is `null` when the model gives no usable priority.
+
+In this example, the third sentence of the requirement appears in `uncoveredRequirementText` because no story quotes it, even though `AC-1.2` handles it.
 
 ### Configuration
 
