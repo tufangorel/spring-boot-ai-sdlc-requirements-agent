@@ -74,4 +74,36 @@ class UserStoryGherkinTests {
 				""");
 	}
 
+	@Test
+	void keepsTagsFreeOfSpacesAndRendersRulesWithoutTitlesOrCriteria() {
+		UserStoryResult result = new UserStoryResult("Locks.",
+				List.of(new UserStory("US 1", "Lock", null, null, null, null, Priority.COULD, null,
+								List.of(new AcceptanceCriterion("AC @1.1", "a user", "the admin locks it", "it is locked"),
+										new AcceptanceCriterion("AC-1.2", " ", "x", "y"),
+										new AcceptanceCriterion("AC-1.3", "x", "y", null))),
+						new UserStory("US-2", " ", null, null, null, null, null, null, null)),
+				List.of(), List.of(), List.of(), List.of(), List.of());
+
+		assertThat(UserStoryGherkin.render(result)).isEqualTo("""
+				Feature: Locks.
+
+				  Rule: US 1: Lock
+
+				    @US1 @AC1.1 @COULD
+				    Scenario: AC @1.1: the admin locks it
+				      Given a user
+				      When the admin locks it
+				      Then it is locked
+
+				  Rule: US-2
+				""");
+	}
+
+	@Test
+	void rendersOnlyTheFeatureLineWhenThereAreNoStories() {
+		UserStoryResult result = new UserStoryResult(" ", null, null, null, null, null, null);
+
+		assertThat(UserStoryGherkin.render(result)).isEqualTo("Feature: User stories\n");
+	}
+
 }

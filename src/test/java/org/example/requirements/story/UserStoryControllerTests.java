@@ -96,13 +96,39 @@ class UserStoryControllerTests {
 	}
 
 	@Test
-	void rejectsAGherkinExportWithoutStories() throws Exception {
+	void exportsAMinimalBody() throws Exception {
 		mockMvc.perform(post("/api/user-stories/gherkin")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"summary":"Nothing","stories":[]}
+								{"stories":[{"id":"US-1","title":"Cancel an unshipped order","acceptanceCriteria":[
+								{"id":"AC-1.1","given":"an order that has not shipped","when":"the customer cancels it",
+								"then":"the order status is Cancelled"}]}]}
 								"""))
-				.andExpect(status().isBadRequest());
+				.andExpect(status().isOk())
+				.andExpect(content().string("""
+						Feature: User stories
+
+						  Rule: US-1: Cancel an unshipped order
+
+						    @US-1 @AC-1.1
+						    Scenario: AC-1.1: the customer cancels it
+						      Given an order that has not shipped
+						      When the customer cancels it
+						      Then the order status is Cancelled
+						"""));
+	}
+
+	@Test
+	void rejectsAGherkinExportWithoutStories() throws Exception {
+		for (String body : new String[] { "{\"summary\":\"Nothing\",\"stories\":[]}", "{\"summary\":\"Nothing\"}",
+				"{\"stories\":" }) {
+			mockMvc.perform(post("/api/user-stories/gherkin")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(body))
+					.andExpect(status().isBadRequest());
+		}
+
+		verifyNoInteractions(agent, submission);
 	}
 
 	@Test
