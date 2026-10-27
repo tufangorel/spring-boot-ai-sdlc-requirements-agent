@@ -168,6 +168,27 @@ If the model call fails, the error goes back to the caller and no partial result
 
 In this example, the third sentence of the requirement appears in `uncoveredRequirementText` because no story quotes it, even though `AC-1.2` handles it.
 
+### Export as a Gherkin feature file
+
+`POST /api/user-stories/gherkin` takes a result from the endpoint above as its body, after the team has reviewed or edited it, and returns a Gherkin feature file (`text/x-gherkin`). The model is not called, so the scenarios match the stories you send. The request is rejected with 400 Bad Request when `stories` is empty.
+
+Each story becomes a `Rule` and each acceptance criterion becomes a `Scenario`, tagged with the story id, the criterion id, and the priority:
+
+```gherkin
+Feature: Order cancellation and refunds for customers.
+
+  Rule: US-1: Cancel an unshipped order
+    As a customer, I want to cancel my order before it ships, so that I am not charged for something I no longer want.
+
+    @US-1 @AC-1.1 @MUST
+    Scenario: AC-1.1: the customer cancels it
+      Given an order that has not shipped
+      When the customer cancels it
+      Then the order status is Cancelled
+```
+
+The `Rule` keyword needs a Cucumber version that supports Gherkin 6 or later. The step text is written in plain language, so you still write or generate the step definitions that run it.
+
 ### Configuration
 
 | Property | Default |

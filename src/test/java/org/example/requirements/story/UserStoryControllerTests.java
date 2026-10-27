@@ -78,6 +78,34 @@ class UserStoryControllerTests {
 	}
 
 	@Test
+	void exportsAReviewedResultAsGherkinWithoutCallingTheAgent() throws Exception {
+		mockMvc.perform(post("/api/user-stories/gherkin")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"summary":"Password reset.","stories":[{"id":"US-1","title":"Reset a password",
+								"priority":"MUST","acceptanceCriteria":[{"id":"AC-1.1","given":"a user’s account",
+								"when":"they ask for a reset","then":"a reset link is emailed"}]}]}
+								"""))
+				.andExpect(status().isOk())
+				.andExpect(content().contentTypeCompatibleWith("text/x-gherkin"))
+				.andExpect(content().string(containsString("Rule: US-1: Reset a password")))
+				.andExpect(content().string(containsString("@US-1 @AC-1.1 @MUST")))
+				.andExpect(content().string(containsString("Given a user’s account")));
+
+		verifyNoInteractions(agent, submission);
+	}
+
+	@Test
+	void rejectsAGherkinExportWithoutStories() throws Exception {
+		mockMvc.perform(post("/api/user-stories/gherkin")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"summary":"Nothing","stories":[]}
+								"""))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void rejectsABlankRequirement() throws Exception {
 		mockMvc.perform(post("/api/user-stories")
 						.contentType(MediaType.APPLICATION_JSON)
