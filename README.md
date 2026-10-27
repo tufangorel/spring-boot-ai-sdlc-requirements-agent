@@ -15,11 +15,15 @@ Models tend to invent plausible requirements that nobody asked for. The service 
 - A story with the same role and goal as an earlier one is dropped as a duplicate.
 - At most `requirements.max-stories` stories are returned.
 
-Every dropped story is listed in `warnings`, so nothing disappears without a trace.
-
-The opposite gap is reported too. `uncoveredRequirementText` lists each sentence of the requirement that no story's `sourceQuote` covers, so you can see what the model skipped. The check compares quotes, so a sentence that is handled only inside an acceptance criterion also appears here; treat the list as text to review, not as an error. The service, not the model, assigns the ids (`US-1`, `AC-1.1`) and builds the story sentence ("As a …, I want …, so that …").
+Every dropped story is listed in `warnings`, so nothing disappears without a trace. The service, not the model, assigns the ids (`US-1`, `AC-1.1`) and builds the story sentence ("As a …, I want …, so that …").
 
 The **definition of done** combines two parts. The first is your team's general checklist, configured in `requirements.definition-of-done`. The second is the checks the model found specific to this requirement, such as audit logging or a data migration. Duplicates are removed.
+
+### Requirement coverage
+
+The opposite gap is reported too: requirement text that no story came from. The service splits the requirement into sentences at `.`, `!`, `?`, and line breaks, skips lines with no letters or digits (such as `---`), and lists every sentence that no kept story's `sourceQuote` covers in `uncoveredRequirementText`. A sentence counts as covered when it contains a story's quote or lies inside one, using the same comparison as above. The Markdown output shows the list under "Requirement text not covered by a story".
+
+The check compares quotes, not meaning. A sentence that a story handles only in its acceptance criteria still appears in the list, and an abbreviation such as "e.g." can split a sentence in two. Treat the list as text to review with the product owner, not as an error.
 
 ## Tech stack
 
@@ -101,7 +105,7 @@ sequenceDiagram
     Model-->>ChatClient: ChatResponse
     ChatClient-->>Agent: StoryDraft (entity)
     Agent->>Grounding: ground(requirement, draft, team definition of done, max stories)
-    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories, then record warnings
+    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories, record warnings,<br/>and list uncovered requirement sentences
     Grounding-->>Agent: UserStoryResult with ids and story sentences
     Agent-->>Controller: UserStoryResult
     Controller-->>Client: 200 OK (JSON, or Markdown for /markdown)
