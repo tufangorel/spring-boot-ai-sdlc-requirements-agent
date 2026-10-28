@@ -224,9 +224,25 @@ All other fields (`role`, `goal`, `benefit`, `sourceQuote`, `uncoveredRequiremen
 }
 ```
 
+This minimal body returns:
+
+```gherkin
+Feature: User stories
+
+  Rule: US-1: Cancel an unshipped order
+
+    @US-1 @AC-1.1
+    Scenario: AC-1.1: the customer cancels it
+      Given an order that has not shipped
+      When the customer cancels it
+      Then the order status is Cancelled
+```
+
+The feature is named `User stories` because there is no `summary`, and there is no priority tag because there is no `priority`.
+
 #### Response
 
-For the example result above, the export returns:
+Sending the full example response from [Generate user stories](#response) returns:
 
 ```gherkin
 Feature: Order cancellation and refunds for customers.
@@ -261,6 +277,73 @@ Gherkin is line based, so the export keeps edited text from breaking the file:
 - Line breaks and repeated whitespace inside any value are collapsed to single spaces.
 - A criterion with a missing or blank `given`, `when`, or `then` is skipped, because it cannot form a complete scenario. `null` entries in `stories` or `acceptanceCriteria` are skipped too.
 - Text is copied as written. If you edit a step to start with its keyword, such as `"given": "Given an order"`, the file contains `Given Given an order`. Write the clause without the keyword, as the generate endpoint does.
+
+#### Sample with edited input
+
+This body is what a result often looks like after review. A line break was typed into a step, one criterion was left without a `then`, the second story's id contains a space and has no priority, and a third story was added without criteria:
+
+```json
+{
+  "summary": "Order cancellation and refunds",
+  "stories": [
+    {
+      "id": "US-1",
+      "title": "Cancel an unshipped order",
+      "priority": "MUST",
+      "acceptanceCriteria": [
+        { "id": "AC-1.1", "given": "an order that\nhas not shipped", "when": "the customer cancels it", "then": "the order status is Cancelled" },
+        { "id": "AC-1.2", "given": "an order that has shipped", "when": "the customer tries to cancel it", "then": "" }
+      ]
+    },
+    {
+      "id": "US 2",
+      "title": "Refund to the original payment method",
+      "acceptanceCriteria": [
+        { "id": "AC-2.1", "given": "a cancelled order paid by card", "when": "the refund is issued", "then": "the amount is credited to that card within 5 business days" }
+      ]
+    },
+    {
+      "id": "US-3",
+      "title": "Explain why a shipped order cannot be cancelled"
+    }
+  ]
+}
+```
+
+The export returns:
+
+```gherkin
+Feature: Order cancellation and refunds
+
+  Rule: US-1: Cancel an unshipped order
+
+    @US-1 @AC-1.1 @MUST
+    Scenario: AC-1.1: the customer cancels it
+      Given an order that has not shipped
+      When the customer cancels it
+      Then the order status is Cancelled
+
+  Rule: US 2: Refund to the original payment method
+
+    @US2 @AC-2.1
+    Scenario: AC-2.1: the refund is issued
+      Given a cancelled order paid by card
+      When the refund is issued
+      Then the amount is credited to that card within 5 business days
+
+  Rule: US-3: Explain why a shipped order cannot be cancelled
+```
+
+What happened to each edit:
+
+| Input | Output |
+|-------|--------|
+| Line break inside `AC-1.1`'s `given` | Joined into one line: `Given an order that has not shipped` |
+| `AC-1.2` has an empty `then` | Skipped; `US-1` has only one scenario |
+| `US 2` has a space in its id | The rule name keeps it (`US 2`); the tag drops it (`@US2`) |
+| `US 2` has no `priority` | No priority tag on `AC-2.1` |
+| `US-1` and `US 2` have no `story` sentence | No description line under the rule |
+| `US-3` has no `acceptanceCriteria` | The rule is written with no scenarios, a reminder that it needs criteria |
 
 #### Errors
 

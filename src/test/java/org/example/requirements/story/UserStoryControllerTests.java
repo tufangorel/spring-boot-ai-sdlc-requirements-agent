@@ -119,6 +119,112 @@ class UserStoryControllerTests {
 	}
 
 	@Test
+	void exportsTheReadmeExampleResponse() throws Exception {
+		mockMvc.perform(post("/api/user-stories/gherkin")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "summary": "Order cancellation and refunds for customers.",
+								  "stories": [
+								    {
+								      "id": "US-1",
+								      "title": "Cancel an unshipped order",
+								      "story": "As a customer, I want to cancel my order before it ships, so that I am not charged for something I no longer want.",
+								      "role": "customer",
+								      "goal": "to cancel my order before it ships",
+								      "benefit": "I am not charged for something I no longer want",
+								      "priority": "MUST",
+								      "sourceQuote": "Customers must be able to cancel an order before it ships.",
+								      "acceptanceCriteria": [
+								        { "id": "AC-1.1", "given": "an order that has not shipped", "when": "the customer cancels it", "then": "the order status is Cancelled" },
+								        { "id": "AC-1.2", "given": "an order that has shipped", "when": "the customer tries to cancel it", "then": "the request is refused with a message that shipped orders cannot be cancelled" }
+								      ]
+								    }
+								  ],
+								  "uncoveredRequirementText": ["Shipped orders cannot be cancelled."],
+								  "definitionOfDone": ["Cancellations are written to the audit log"],
+								  "assumptions": ["Partial cancellation of an order is out of scope"],
+								  "openQuestions": ["What happens when the original card has expired?"],
+								  "warnings": []
+								}
+								"""))
+				.andExpect(status().isOk())
+				.andExpect(content().string("""
+						Feature: Order cancellation and refunds for customers.
+
+						  Rule: US-1: Cancel an unshipped order
+						    As a customer, I want to cancel my order before it ships, so that I am not charged for something I no longer want.
+
+						    @US-1 @AC-1.1 @MUST
+						    Scenario: AC-1.1: the customer cancels it
+						      Given an order that has not shipped
+						      When the customer cancels it
+						      Then the order status is Cancelled
+
+						    @US-1 @AC-1.2 @MUST
+						    Scenario: AC-1.2: the customer tries to cancel it
+						      Given an order that has shipped
+						      When the customer tries to cancel it
+						      Then the request is refused with a message that shipped orders cannot be cancelled
+						"""));
+	}
+
+	@Test
+	void exportsTheReadmeEditedInputSample() throws Exception {
+		mockMvc.perform(post("/api/user-stories/gherkin")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "summary": "Order cancellation and refunds",
+								  "stories": [
+								    {
+								      "id": "US-1",
+								      "title": "Cancel an unshipped order",
+								      "priority": "MUST",
+								      "acceptanceCriteria": [
+								        { "id": "AC-1.1", "given": "an order that\\nhas not shipped", "when": "the customer cancels it", "then": "the order status is Cancelled" },
+								        { "id": "AC-1.2", "given": "an order that has shipped", "when": "the customer tries to cancel it", "then": "" }
+								      ]
+								    },
+								    {
+								      "id": "US 2",
+								      "title": "Refund to the original payment method",
+								      "acceptanceCriteria": [
+								        { "id": "AC-2.1", "given": "a cancelled order paid by card", "when": "the refund is issued", "then": "the amount is credited to that card within 5 business days" }
+								      ]
+								    },
+								    {
+								      "id": "US-3",
+								      "title": "Explain why a shipped order cannot be cancelled"
+								    }
+								  ]
+								}
+								"""))
+				.andExpect(status().isOk())
+				.andExpect(content().string("""
+						Feature: Order cancellation and refunds
+
+						  Rule: US-1: Cancel an unshipped order
+
+						    @US-1 @AC-1.1 @MUST
+						    Scenario: AC-1.1: the customer cancels it
+						      Given an order that has not shipped
+						      When the customer cancels it
+						      Then the order status is Cancelled
+
+						  Rule: US 2: Refund to the original payment method
+
+						    @US2 @AC-2.1
+						    Scenario: AC-2.1: the refund is issued
+						      Given a cancelled order paid by card
+						      When the refund is issued
+						      Then the amount is credited to that card within 5 business days
+
+						  Rule: US-3: Explain why a shipped order cannot be cancelled
+						"""));
+	}
+
+	@Test
 	void rejectsAGherkinExportWithoutStories() throws Exception {
 		for (String body : new String[] { "{\"summary\":\"Nothing\",\"stories\":[]}", "{\"summary\":\"Nothing\"}",
 				"{\"stories\":" }) {
