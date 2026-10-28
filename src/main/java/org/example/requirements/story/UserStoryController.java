@@ -15,6 +15,8 @@ public class UserStoryController {
 
 	static final String TEXT_MARKDOWN = "text/markdown";
 
+	static final String TEXT_GHERKIN = "text/x-gherkin";
+
 	private final UserStoryAgent agent;
 
 	private final RequirementSubmission submission;
@@ -36,6 +38,13 @@ public class UserStoryController {
 	@PostMapping(path = "/markdown", produces = TEXT_MARKDOWN)
 	public String generateMarkdown(@Valid @RequestBody UserStoryRequest request) {
 		return UserStoryMarkdown.render(generate(request));
+	}
+
+	@Operation(summary = "Export user stories as a Gherkin feature file",
+			description = "Takes a result returned by this API, after the team has reviewed or edited it, and returns a Gherkin feature file with one rule per story and one scenario per acceptance criterion. The model is not called.")
+	@PostMapping(path = "/gherkin", produces = TEXT_GHERKIN)
+	public String exportGherkin(@Valid @RequestBody UserStoryResult result) {
+		return UserStoryGherkin.render(result);
 	}
 
 }

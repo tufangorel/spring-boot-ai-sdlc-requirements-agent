@@ -2,9 +2,11 @@ package org.example.requirements.story;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotEmpty;
+
 public record UserStoryResult(
 		String summary,
-		List<UserStory> stories,
+		@NotEmpty List<UserStory> stories,
 		List<String> uncoveredRequirementText,
 		List<String> definitionOfDone,
 		List<String> assumptions,
