@@ -1,6 +1,6 @@
 # Spring Boot AI Requirements Agent
 
-A Spring AI service that turns a user requirement into backlog-ready **user stories**, each with **Given/When/Then acceptance criteria**, plus a **definition of done**, the **assumptions** the model made, and **open questions** for the product owner. Send the requirement as JSON and get the result back as JSON, or as Markdown that you can paste into a backlog tool or wiki. After the team has reviewed the stories, you can export them as a **Gherkin feature file** for Cucumber and other BDD tools.
+A Spring AI service that turns a user requirement into backlog-ready **user stories**, each with **Given/When/Then acceptance criteria**, plus the **non-functional requirements** it states, a **definition of done**, the **assumptions** the model made, and **open questions** for the product owner. Send the requirement as JSON and get the result back as JSON, or as Markdown that you can paste into a backlog tool or wiki. After the team has reviewed the stories, you can export them as a **Gherkin feature file** for Cucumber and other BDD tools.
 
 The API works with either **OpenAI** or **Anthropic (Claude)** models. You choose the provider with configuration and need no code changes: set `AI_PROVIDER` to `openai` (the default) or `anthropic`, give the matching API key in `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`, and optionally pick a model with `OPENAI_MODEL` or `ANTHROPIC_MODEL`. Each running instance uses one provider.
 
@@ -17,11 +17,22 @@ Models tend to invent plausible requirements that nobody asked for. The service 
 
 Every dropped story is listed in `warnings`, so nothing disappears without a trace. The service, not the model, assigns the ids (`US-1`, `AC-1.1`) and builds the story sentence ("As a …, I want …, so that …").
 
+### Non-functional requirements
+
+Quality requirements such as response times, deadlines, availability, security, or compliance rules are returned separately in `nonFunctionalRequirements`, so that design work (for example an architecture agent) can trace decisions to them. Each one has:
+
+- `id`: `NFR-1`, `NFR-2`, and so on, assigned by the service.
+- `category`: `PERFORMANCE`, `SECURITY`, `AVAILABILITY`, `SCALABILITY`, `COMPLIANCE`, `USABILITY`, `MAINTAINABILITY`, or `OTHER`. Unknown or missing categories become `OTHER`.
+- `statement`: one testable sentence.
+- `sourceQuote`: the words of the requirement it came from.
+
+They are checked like stories. An NFR without a statement, with a quote that does not appear in the requirement, or with the same statement as an earlier one is dropped and listed in `warnings`. The model is told to list only what the requirement states and not to invent targets, so the list is empty when the requirement states none.
+
 The **definition of done** combines two parts. The first is your team's general checklist, configured in `requirements.definition-of-done`. The second is the checks the model found specific to this requirement, such as audit logging or a data migration. Duplicates are removed.
 
 ### Requirement coverage
 
-The opposite gap is reported too: requirement text that no story came from. The service splits the requirement into sentences at `.`, `!`, `?`, and line breaks, skips lines with no letters or digits (such as `---`), and lists every sentence that no kept story's `sourceQuote` covers in `uncoveredRequirementText`. A sentence counts as covered when it contains a story's quote or lies inside one, using the same comparison as above. The Markdown output shows the list under "Requirement text not covered by a story".
+The opposite gap is reported too: requirement text that nothing came from. The service splits the requirement into sentences at `.`, `!`, `?`, and line breaks, skips lines with no letters or digits (such as `---`), and lists every sentence that no kept story's or non-functional requirement's `sourceQuote` covers in `uncoveredRequirementText`. A sentence counts as covered when it contains a quote or lies inside one, using the same comparison as above. The Markdown output shows the list under "Requirement text not covered".
 
 The check compares quotes, not meaning. A sentence that a story handles only in its acceptance criteria still appears in the list, and an abbreviation such as "e.g." can split a sentence in two. Treat the list as text to review with the product owner, not as an error.
 
@@ -105,8 +116,8 @@ sequenceDiagram
     Model-->>ChatClient: ChatResponse
     ChatClient-->>Agent: StoryDraft (entity)
     Agent->>Grounding: ground(requirement, draft, team definition of done, max stories)
-    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories, record warnings,<br/>and list uncovered requirement sentences
-    Grounding-->>Agent: UserStoryResult with ids and story sentences
+    Note over Grounding: drop incomplete, ungrounded, untestable,<br/>and duplicate stories and NFRs, record warnings,<br/>and list uncovered requirement sentences
+    Grounding-->>Agent: UserStoryResult with story and NFR ids
     Agent-->>Controller: UserStoryResult
     Controller-->>Client: 200 OK (JSON, or Markdown for /markdown)
 ```
@@ -147,6 +158,14 @@ If the model call fails, the error goes back to the caller and no partial result
         { "id": "AC-1.1", "given": "an order that has not shipped", "when": "the customer cancels it", "then": "the order status is Cancelled" },
         { "id": "AC-1.2", "given": "an order that has shipped", "when": "the customer tries to cancel it", "then": "the request is refused with a message that shipped orders cannot be cancelled" }
       ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-1",
+      "category": "PERFORMANCE",
+      "statement": "Refunds reach the original payment method within 5 business days.",
+      "sourceQuote": "within 5 business days"
     }
   ],
   "uncoveredRequirementText": ["Shipped orders cannot be cancelled."],
@@ -208,7 +227,7 @@ The body has the same shape as the response above. The export reads only these f
 | `acceptanceCriteria[].id` | No | The scenario name and a tag. |
 | `acceptanceCriteria[].given`, `when`, `then` | **Yes**, all three | The `Given`, `When`, and `Then` steps. |
 
-All other fields (`role`, `goal`, `benefit`, `sourceQuote`, `uncoveredRequirementText`, `definitionOfDone`, `assumptions`, `openQuestions`, `warnings`) are ignored. A minimal body:
+All other fields (`role`, `goal`, `benefit`, `sourceQuote`, `nonFunctionalRequirements`, `uncoveredRequirementText`, `definitionOfDone`, `assumptions`, `openQuestions`, `warnings`) are ignored. A minimal body:
 
 ```json
 {

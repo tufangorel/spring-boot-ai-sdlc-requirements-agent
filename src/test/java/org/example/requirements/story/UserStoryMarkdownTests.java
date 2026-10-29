@@ -3,6 +3,7 @@ package org.example.requirements.story;
 import java.util.List;
 
 import org.example.requirements.story.UserStoryResult.AcceptanceCriterion;
+import org.example.requirements.story.UserStoryResult.NonFunctionalRequirement;
 import org.example.requirements.story.UserStoryResult.UserStory;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,8 @@ class UserStoryMarkdownTests {
 						"admin", "to lock an account", "misuse stops", Priority.MUST, "Admins can lock a user account.",
 						List.of(new AcceptanceCriterion("AC-1.1", "an active user", "the admin locks the account",
 								"the user is signed out")))),
+				List.of(new NonFunctionalRequirement("NFR-1", NfrCategory.COMPLIANCE, "Every lock is written to the audit log.",
+						"locks are audited")),
 				List.of("Locks expire after 24 hours."), List.of("Code is peer reviewed"), List.of("Only admins lock accounts"),
 				List.of("How long does a lock last?"), List.of("Dropped story \"Delete\": its source quote does not appear in the requirement."));
 
@@ -36,7 +39,11 @@ class UserStoryMarkdownTests {
 
 				- **AC-1.1** Given an active user, when the admin locks the account, then the user is signed out.
 
-				## Requirement text not covered by a story
+				## Non-functional requirements
+
+				- **NFR-1** (COMPLIANCE) Every lock is written to the audit log. Source: "locks are audited"
+
+				## Requirement text not covered
 
 				- Locks expire after 24 hours.
 
@@ -64,11 +71,12 @@ class UserStoryMarkdownTests {
 				List.of(new UserStory("US-1", "Reset", "As a user, I want to reset my password, so that I can sign in.",
 						"user", "to reset my password", "I can sign in", null, "Users can reset a password.",
 						List.of(new AcceptanceCriterion("AC-1.1", "a user", "they reset", "a link is sent")))),
-				List.of(), List.of(), List.of(), List.of(), List.of());
+				List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
 
 		assertThat(UserStoryMarkdown.render(result))
 				.contains("- **Priority:** Not set")
-				.doesNotContain("## Requirement text not covered by a story")
+				.doesNotContain("## Non-functional requirements")
+				.doesNotContain("## Requirement text not covered")
 				.doesNotContain("## Definition of done")
 				.doesNotContain("## Assumptions")
 				.doesNotContain("## Open questions")

@@ -23,7 +23,7 @@ class UserStoryGherkinTests {
 								"user", "to see why I am locked", "I can ask for help", null, "Locked users cannot sign in.",
 								List.of(new AcceptanceCriterion("AC-2.1", "a locked user", "they sign in",
 										"a lock notice is shown")))),
-				List.of(), List.of(), List.of(), List.of(), List.of());
+				List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
 
 		assertThat(UserStoryGherkin.render(result)).isEqualTo("""
 				Feature: Account locking.
@@ -60,7 +60,7 @@ class UserStoryGherkinTests {
 				Arrays.asList(null, new UserStory(null, "Lock\nan account", null, null, null, null, null, null,
 						Arrays.asList(null, new AcceptanceCriterion(null, "an active\n  user", "the admin locks it", "it is locked"),
 								new AcceptanceCriterion("AC-1.2", "x", " ", "y")))),
-				null, null, null, null, null);
+				null, null, null, null, null, null);
 
 		assertThat(UserStoryGherkin.render(result)).isEqualTo("""
 				Feature: User stories
@@ -82,7 +82,7 @@ class UserStoryGherkinTests {
 										new AcceptanceCriterion("AC-1.2", " ", "x", "y"),
 										new AcceptanceCriterion("AC-1.3", "x", "y", null))),
 						new UserStory("US-2", " ", null, null, null, null, null, null, null)),
-				List.of(), List.of(), List.of(), List.of(), List.of());
+				List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
 
 		assertThat(UserStoryGherkin.render(result)).isEqualTo("""
 				Feature: Locks.
@@ -101,7 +101,7 @@ class UserStoryGherkinTests {
 
 	@Test
 	void rendersOnlyTheFeatureLineWhenThereAreNoStories() {
-		UserStoryResult result = new UserStoryResult(" ", null, null, null, null, null, null);
+		UserStoryResult result = new UserStoryResult(" ", null, null, null, null, null, null, null);
 
 		assertThat(UserStoryGherkin.render(result)).isEqualTo("Feature: User stories\n");
 	}

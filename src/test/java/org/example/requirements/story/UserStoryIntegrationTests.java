@@ -43,6 +43,8 @@ class UserStoryIntegrationTests {
 				.andExpect(jsonPath("$.stories", hasSize(2)))
 				.andExpect(jsonPath("$.stories[0].id").value("US-1"))
 				.andExpect(jsonPath("$.stories[0].acceptanceCriteria[1].id").value("AC-1.2"))
+				.andExpect(jsonPath("$.nonFunctionalRequirements[0].id").value("NFR-1"))
+				.andExpect(jsonPath("$.nonFunctionalRequirements[0].category").value("PERFORMANCE"))
 				.andExpect(jsonPath("$.uncoveredRequirementText", hasSize(1)))
 				.andExpect(jsonPath("$.uncoveredRequirementText[0]").value("Shipped orders cannot be cancelled."))
 				.andExpect(jsonPath("$.definitionOfDone[0]").value("Code is peer reviewed and merged to the main branch"))
