@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public record StoryDraft(
 		String summary,
 		List<Story> stories,
+		List<Nfr> nonFunctionalRequirements,
 		List<String> definitionOfDone,
 		List<String> assumptions,
 		List<String> openQuestions) {
@@ -28,6 +29,10 @@ public record StoryDraft(
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record Criterion(String given, String when, String then) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record Nfr(NfrCategory category, String statement, String sourceQuote) {
 	}
 
 }

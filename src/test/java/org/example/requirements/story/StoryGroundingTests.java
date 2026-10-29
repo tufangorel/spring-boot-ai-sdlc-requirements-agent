@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.example.requirements.story.StoryDraft.Criterion;
+import org.example.requirements.story.StoryDraft.Nfr;
 import org.example.requirements.story.StoryDraft.Story;
 import org.example.requirements.story.UserStoryResult.AcceptanceCriterion;
+import org.example.requirements.story.UserStoryResult.NonFunctionalRequirement;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,7 +113,7 @@ class StoryGroundingTests {
 	@Test
 	void mergesTheBaselineDefinitionOfDoneAndCleansTheOtherLists() {
 		UserStoryResult result = ground(new StoryDraft("  Account locking.  ",
-				List.of(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can")),
+				List.of(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can")), null,
 				Arrays.asList("code is PEER reviewed", " Locking is audited ", null, " "),
 				Arrays.asList("Only admins lock accounts", "only admins  lock accounts", null),
 				List.of("  How long does a lock last?  ")));
@@ -129,7 +131,7 @@ class StoryGroundingTests {
 		assertThat(ground(draft(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can"),
 				story("Deny", "user", "to see why", "I can ask for help", "Locked users"))).summary())
 				.isEqualTo("Generated 2 user stories from the requirement.");
-		assertThat(ground(new StoryDraft("The model claims stories", List.of(), null, null, null)).summary())
+		assertThat(ground(new StoryDraft("The model claims stories", List.of(), null, null, null, null)).summary())
 				.isEqualTo("No user stories could be grounded in the requirement.");
 	}
 
@@ -158,6 +160,31 @@ class StoryGroundingTests {
 	}
 
 	@Test
+	void groundsNonFunctionalRequirementsAndNumbersThem() {
+		UserStoryResult result = ground(new StoryDraft(null,
+				List.of(story("Lock", "admin", "to lock accounts", "misuse stops", "Admins can")),
+				Arrays.asList(null,
+						new Nfr(NfrCategory.SECURITY, "  Locked users are denied access.  ", "Locked users cannot sign in"),
+						new Nfr(null, "Locks are stored for a year.", "Locks are stored for a year."),
+						new Nfr(NfrCategory.SECURITY, " ", "Locked users cannot sign in"),
+						new Nfr(NfrCategory.SECURITY, "No quote.", null),
+						new Nfr(NfrCategory.SECURITY, "locked users are  DENIED access.", "Locked users"),
+						new Nfr(null, "Admins act fast.", "Admins can “lock”")),
+				null, null, null));
+
+		assertThat(result.nonFunctionalRequirements()).containsExactly(
+				new NonFunctionalRequirement("NFR-1", NfrCategory.SECURITY, "Locked users are denied access.",
+						"Locked users cannot sign in"),
+				new NonFunctionalRequirement("NFR-2", NfrCategory.OTHER, "Admins act fast.", "Admins can “lock”"));
+		assertThat(result.warnings()).containsExactly(
+				"Dropped non-functional requirement \"Locks are stored for a year.\": its source quote does not appear in the requirement.",
+				"Dropped a non-functional requirement: its statement is missing.",
+				"Dropped non-functional requirement \"No quote.\": its source quote does not appear in the requirement.",
+				"Dropped non-functional requirement \"locked users are  DENIED access.\": it duplicates an earlier one.");
+		assertThat(result.uncoveredRequirementText()).isEmpty();
+	}
+
+	@Test
 	void handlesANullReply() {
 		UserStoryResult result = ground(null);
 
@@ -175,7 +202,7 @@ class StoryGroundingTests {
 	}
 
 	private static StoryDraft draft(Story... stories) {
-		return new StoryDraft(null, Arrays.asList(stories), null, null, null);
+		return new StoryDraft(null, Arrays.asList(stories), null, null, null, null);
 	}
 
 	private static Story story(String title, String role, String goal, String benefit, String quote) {

@@ -10,8 +10,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.example.requirements.story.StoryDraft.Criterion;
+import org.example.requirements.story.StoryDraft.Nfr;
 import org.example.requirements.story.StoryDraft.Story;
 import org.example.requirements.story.UserStoryResult.AcceptanceCriterion;
+import org.example.requirements.story.UserStoryResult.NonFunctionalRequirement;
 import org.example.requirements.story.UserStoryResult.UserStory;
 
 final class StoryGrounding {
@@ -33,7 +35,7 @@ final class StoryGrounding {
 
 	static UserStoryResult ground(String requirement, StoryDraft draft, List<String> baselineDefinitionOfDone,
 			int maxStories) {
-		StoryDraft reply = draft == null ? new StoryDraft(null, null, null, null, null) : draft;
+		StoryDraft reply = draft == null ? new StoryDraft(null, null, null, null, null, null) : draft;
 		String haystack = normalize(requirement);
 		List<String> warnings = new ArrayList<>();
 		Map<String, UserStory> kept = new LinkedHashMap<>();
@@ -99,14 +101,45 @@ final class StoryGrounding {
 			summary = "Generated " + stories.size() + " user " + (stories.size() == 1 ? "story" : "stories")
 					+ " from the requirement.";
 		}
+		List<NonFunctionalRequirement> nfrs = groundNfrs(haystack, reply.nonFunctionalRequirements(), warnings);
+		List<String> quotes = new ArrayList<>();
+		stories.forEach(story -> quotes.add(normalize(story.sourceQuote())));
+		nfrs.forEach(nfr -> quotes.add(normalize(nfr.sourceQuote())));
 		List<String> definitionOfDone = new ArrayList<>(baselineDefinitionOfDone);
 		definitionOfDone.addAll(nullSafe(reply.definitionOfDone()));
-		return new UserStoryResult(summary, stories, uncovered(requirement, stories), distinct(definitionOfDone),
+		return new UserStoryResult(summary, stories, nfrs, uncovered(requirement, quotes), distinct(definitionOfDone),
 				distinct(reply.assumptions()), distinct(reply.openQuestions()), List.copyOf(warnings));
 	}
 
-	private static List<String> uncovered(String requirement, List<UserStory> stories) {
-		List<String> quotes = stories.stream().map(story -> normalize(story.sourceQuote())).toList();
+	private static List<NonFunctionalRequirement> groundNfrs(String haystack, List<Nfr> drafts, List<String> warnings) {
+		Map<String, NonFunctionalRequirement> kept = new LinkedHashMap<>();
+		for (Nfr nfr : nullSafe(drafts)) {
+			if (nfr == null) {
+				continue;
+			}
+			if (!hasText(nfr.statement())) {
+				warnings.add("Dropped a non-functional requirement: its statement is missing.");
+				continue;
+			}
+			String statement = nfr.statement().trim();
+			String quote = nfr.sourceQuote() == null ? "" : nfr.sourceQuote().trim();
+			if (quote.isEmpty() || !haystack.contains(normalize(quote))) {
+				warnings.add("Dropped non-functional requirement \"" + statement
+						+ "\": its source quote does not appear in the requirement.");
+				continue;
+			}
+			String key = normalize(statement);
+			if (kept.containsKey(key)) {
+				warnings.add("Dropped non-functional requirement \"" + statement + "\": it duplicates an earlier one.");
+				continue;
+			}
+			kept.put(key, new NonFunctionalRequirement("NFR-" + (kept.size() + 1),
+					nfr.category() == null ? NfrCategory.OTHER : nfr.category(), statement, quote));
+		}
+		return List.copyOf(kept.values());
+	}
+
+	private static List<String> uncovered(String requirement, List<String> quotes) {
 		List<String> sentences = new ArrayList<>();
 		for (String sentence : SENTENCE_BREAK.split(requirement.trim())) {
 			String key = normalize(sentence);

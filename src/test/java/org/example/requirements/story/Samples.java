@@ -36,6 +36,9 @@ final class Samples {
 			      ]
 			    }
 			  ],
+			  "nonFunctionalRequirements": [
+			    {"category": "Performance", "statement": "Refunds reach the original payment method within 5 business days.", "sourceQuote": "within 5 business days"}
+			  ],
 			  "definitionOfDone": ["Cancellations are written to the audit log", "Code is peer reviewed and merged to the main branch"],
 			  "assumptions": ["Partial cancellation of an order is out of scope"],
 			  "openQuestions": ["What happens when the original card has expired?"]

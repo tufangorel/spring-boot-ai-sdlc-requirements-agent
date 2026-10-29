@@ -22,6 +22,7 @@ public class UserStoryAgent {
 			- sourceQuote: the exact sentence or phrase from the requirement that the story comes from, copied word for word.
 			- acceptanceCriteria: at least two Given/When/Then scenarios, including at least one failure or edge case. Each criterion must be observable and testable. Do not start the given, when, or then text with those words.
 			Also give:
+			- nonFunctionalRequirements: quality requirements the requirement states, such as response times, deadlines, availability, security, privacy, or compliance rules. For each give category (PERFORMANCE, SECURITY, AVAILABILITY, SCALABILITY, COMPLIANCE, USABILITY, MAINTAINABILITY, or OTHER), statement (one testable sentence), and sourceQuote (the exact words from the requirement, copied word for word). Do not invent targets or numbers. Leave the list empty when the requirement states none.
 			- definitionOfDone: only checks that are specific to this requirement, such as audit logging, a security or performance check, or a data migration. The team's general definition of done is added separately, so do not repeat generic items like code review.
 			- assumptions: anything you had to assume because the requirement does not say it.
 			- openQuestions: questions the product owner must answer before the stories are ready, such as unclear limits, missing error handling, or conflicting statements.

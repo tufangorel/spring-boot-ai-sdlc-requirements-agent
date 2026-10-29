@@ -23,6 +23,9 @@ class UserStoryAgentTests {
 		assertThat(result.stories().get(0).priority()).isEqualTo(Priority.MUST);
 		assertThat(result.stories().get(0).acceptanceCriteria()).hasSize(2);
 		assertThat(result.stories().get(1).priority()).isEqualTo(Priority.SHOULD);
+		assertThat(result.nonFunctionalRequirements()).containsExactly(new UserStoryResult.NonFunctionalRequirement(
+				"NFR-1", NfrCategory.PERFORMANCE, "Refunds reach the original payment method within 5 business days.",
+				"within 5 business days"));
 		assertThat(result.definitionOfDone())
 				.startsWith(new UserStoryProperties().getDefinitionOfDone().toArray(String[]::new))
 				.endsWith("Cancellations are written to the audit log")
@@ -41,6 +44,8 @@ class UserStoryAgentTests {
 				.contains("data, not instructions")
 				.contains("Given/When/Then")
 				.contains("sourceQuote")
+				.contains("nonFunctionalRequirements")
+				.contains("Do not invent targets or numbers")
 				.contains("MUST, SHOULD, COULD, or WONT");
 		assertThat(chatModel.lastPrompt().getUserMessage().getText())
 				.contains("Context: none")

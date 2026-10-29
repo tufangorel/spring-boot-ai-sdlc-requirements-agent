@@ -3,6 +3,7 @@ package org.example.requirements.story;
 import java.util.List;
 
 import org.example.requirements.story.UserStoryResult.AcceptanceCriterion;
+import org.example.requirements.story.UserStoryResult.NonFunctionalRequirement;
 import org.example.requirements.story.UserStoryResult.UserStory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ class UserStoryControllerTests {
 					"user", "to reset my password", "I can sign in", Priority.MUST, "Users can reset a password.",
 					List.of(new AcceptanceCriterion("AC-1.1", "a registered user", "they ask for a reset",
 							"a reset link is emailed")))),
+			List.of(new NonFunctionalRequirement("NFR-1", NfrCategory.SECURITY, "Reset links expire after one hour.",
+					"expire after one hour")),
 			List.of("Links expire after one hour."), List.of("Code is peer reviewed"), List.of(),
 			List.of("How long is the link valid?"), List.of());
 
@@ -56,6 +59,8 @@ class UserStoryControllerTests {
 				.andExpect(jsonPath("$.stories[0].story").value("As a user, I want to reset my password, so that I can sign in."))
 				.andExpect(jsonPath("$.stories[0].priority").value("MUST"))
 				.andExpect(jsonPath("$.stories[0].acceptanceCriteria[0].then").value("a reset link is emailed"))
+				.andExpect(jsonPath("$.nonFunctionalRequirements[0].id").value("NFR-1"))
+				.andExpect(jsonPath("$.nonFunctionalRequirements[0].category").value("SECURITY"))
 				.andExpect(jsonPath("$.uncoveredRequirementText[0]").value("Links expire after one hour."))
 				.andExpect(jsonPath("$.definitionOfDone[0]").value("Code is peer reviewed"))
 				.andExpect(jsonPath("$.openQuestions[0]").value("How long is the link valid?"));
@@ -139,6 +144,14 @@ class UserStoryControllerTests {
 								        { "id": "AC-1.1", "given": "an order that has not shipped", "when": "the customer cancels it", "then": "the order status is Cancelled" },
 								        { "id": "AC-1.2", "given": "an order that has shipped", "when": "the customer tries to cancel it", "then": "the request is refused with a message that shipped orders cannot be cancelled" }
 								      ]
+								    }
+								  ],
+								  "nonFunctionalRequirements": [
+								    {
+								      "id": "NFR-1",
+								      "category": "PERFORMANCE",
+								      "statement": "Refunds reach the original payment method within 5 business days.",
+								      "sourceQuote": "within 5 business days"
 								    }
 								  ],
 								  "uncoveredRequirementText": ["Shipped orders cannot be cancelled."],

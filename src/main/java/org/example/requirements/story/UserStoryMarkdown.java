@@ -24,7 +24,11 @@ final class UserStoryMarkdown {
 						.append(", then ").append(criterion.then()).append(".\n");
 			}
 		}
-		section(md, "Requirement text not covered by a story", result.uncoveredRequirementText(), "- ");
+		section(md, "Non-functional requirements", result.nonFunctionalRequirements().stream()
+				.map(nfr -> "**" + nfr.id() + "** (" + nfr.category() + ") " + nfr.statement() + " Source: \""
+						+ nfr.sourceQuote() + "\"")
+				.toList(), "- ");
+		section(md, "Requirement text not covered", result.uncoveredRequirementText(), "- ");
 		section(md, "Definition of done", result.definitionOfDone(), "- [ ] ");
 		section(md, "Assumptions", result.assumptions(), "- ");
 		section(md, "Open questions", result.openQuestions(), "- ");

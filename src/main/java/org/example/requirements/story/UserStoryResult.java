@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 public record UserStoryResult(
 		String summary,
 		@NotEmpty List<UserStory> stories,
+		List<NonFunctionalRequirement> nonFunctionalRequirements,
 		List<String> uncoveredRequirementText,
 		List<String> definitionOfDone,
 		List<String> assumptions,
@@ -26,6 +27,9 @@ public record UserStoryResult(
 	}
 
 	public record AcceptanceCriterion(String id, String given, String when, String then) {
+	}
+
+	public record NonFunctionalRequirement(String id, NfrCategory category, String statement, String sourceQuote) {
 	}
 
 }
